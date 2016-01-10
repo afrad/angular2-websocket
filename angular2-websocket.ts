@@ -24,7 +24,7 @@ export class $WebSocket  {
     private  reconnectableStatusCodes = [4000];
     private socket: WebSocket;
     private  internalConnectionState: number;
-    constructor(private url:string, private protocols:Array<string>, private config?: WebSocketConfig  ) {
+    constructor(private url:string, private protocols?:Array<string>, private config?: WebSocketConfig  ) {
         this.config = config ||{ initialTimeout: 500, maxTimeout : 300000, reconnectIfNotNormalClose :false};
         if (url) {
             this.connect();
