@@ -1,0 +1,25 @@
+{
+  "name": "angular2-websocket",
+  "version": "0.1.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afrad/angular2-websocket.git"
+  },
+  "dependencies": {
+    "angular2": "^2.0.0-beta.0",
+    "es6-shim": "^0.33.3",
+    "reflect-metadata": "^0.1.2",
+    "rxjs": "^5.0.0-beta.0",
+    "zone.js": "^0.5.10"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-typescript": "~0.2.4",
+    "grunt-contrib-uglify": "~0.2.4",
+    "typescript": "^1.7.5"
+  }
+}
