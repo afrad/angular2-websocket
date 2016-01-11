@@ -27,19 +27,19 @@ export class $WebSocket  {
     private dataStream: Subject<any>;
     private  internalConnectionState: number;
     constructor(private url:string, private protocols?:Array<string>, private config?: WebSocketConfig  ) {
+        var match = new RegExp('wss?:\/\/').test(url);
+        if (!match) {
+            throw new Error('Invalid url provided');
+        }
         this.config = config ||{ initialTimeout: 500, maxTimeout : 300000, reconnectIfNotNormalClose :false};
-        /*   if (url) {
-         this.connect();
-         } else {
-         this.setInternalState(0);
-         }*/
+        this.dataStream = new Subject();
     }
 
     connect(force:boolean = false) {
         var self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
-            self.socket = $WebSocket.create(this.url, this.protocols);
-            this.dataStream = new Subject();
+            self.socket =this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
+
             self.socket.onopen =(ev: Event) => {
                 console.log('onOpen: %s', ev);
                 this.onOpenHandler(ev);
@@ -55,8 +55,8 @@ export class $WebSocket  {
                 this.dataStream.complete()
             };
 
-            this.socket.onerror = (ev: Event) => {
-                console.log('onError');
+            this.socket.onerror = (ev: ErrorEvent) => {
+                console.log('onError', ev);
                 self.onErrorHandler(ev);
                 this.dataStream.error(ev);
             };
@@ -83,14 +83,7 @@ export class $WebSocket  {
     getDataStream():Subject<any>{
         return this.dataStream;
     }
-    static create(url:string, protocols:Array<string>):WebSocket {
-        var match = new RegExp('wss?:\/\/').test(url);
-        if (!match) {
-            throw new Error('Invalid url provided');
-        }
 
-        return protocols ? new WebSocket(url, protocols) : new WebSocket(url);
-    };
     onOpenHandler(event: Event) {
         this.reconnectAttempts = 0;
         this.notifyOpenCallbacks(event);
