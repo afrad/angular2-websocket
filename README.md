@@ -1,6 +1,12 @@
 #angular2websocket
 =====================
 Based on https://github.com/AngularClass/angular-websocket and migrated to Angular2
+## Installation
+
+```bash
+npm install angular2-websocket
+```
+
 Usage:
 ```ts
 import {$WebSocket} from 'angular2-websocket/angular2-websocket'
