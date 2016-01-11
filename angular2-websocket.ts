@@ -2,6 +2,7 @@ import {Injectable} from 'angular2/core';
 import {Observable} from "rxjs/Observable";
 import {isPresent, isString, isArray,isFunction} from 'angular2/src/facade/lang';
 import {Scheduler} from "rxjs/Rx";
+import {Subject} from "rxjs/Subject";
 
 
 @Injectable()
@@ -23,47 +24,65 @@ export class $WebSocket  {
     private  normalCloseCode = 1000;
     private  reconnectableStatusCodes = [4000];
     private socket: WebSocket;
+    private dataStream: Subject<any>;
     private  internalConnectionState: number;
     constructor(private url:string, private protocols?:Array<string>, private config?: WebSocketConfig  ) {
         this.config = config ||{ initialTimeout: 500, maxTimeout : 300000, reconnectIfNotNormalClose :false};
-        if (url) {
-            this.connect();
-        } else {
-            this.setInternalState(0);
-        }
+        /*   if (url) {
+         this.connect();
+         } else {
+         this.setInternalState(0);
+         }*/
     }
 
     connect(force:boolean = false) {
         var self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
             self.socket = $WebSocket.create(this.url, this.protocols);
+            this.dataStream = new Subject();
             self.socket.onopen =(ev: Event) => {
                 console.log('onOpen: %s', ev);
                 this.onOpenHandler(ev);
             };
-         return new Observable(wsObserver => {
-                // load event handler
-             self.socket.onmessage = (ev: MessageEvent) => {
-                    console.log('onNext: %s', ev.data);
-                    self.onMessageHandler(ev);
-                    wsObserver.next(ev);
-                };
-                // error event handler
-                this.socket.onclose = (ev: CloseEvent) => {
-                    console.log('onClose, completed');
-                    self.onCloseHandler(ev);
-                    wsObserver.complete()
-                };
-                this.socket.onerror = (ev: Event) => {
-                    console.log('onError');
-                    self.onErrorHandler(ev);
-                    wsObserver.error(ev);
-                };
-            });
+            self.socket.onmessage = (ev: MessageEvent) => {
+                console.log('onNext: %s', ev.data);
+                self.onMessageHandler(ev);
+                this.dataStream.next(ev);
+            };
+            this.socket.onclose = (ev: CloseEvent) => {
+                console.log('onClose, completed');
+                self.onCloseHandler(ev);
+                this.dataStream.complete()
+            };
+
+            this.socket.onerror = (ev: Event) => {
+                console.log('onError');
+                self.onErrorHandler(ev);
+                this.dataStream.error(ev);
+            };
 
         }
     }
+    send(data) {
+        var self = this;
+        if (this.getReadyState() != this.readyStateConstants.OPEN &&this.getReadyState() != this.readyStateConstants.CONNECTING ){
+            this.connect();
+        }
+        return new Promise((resolve, reject) => {
+            if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
+                reject('Socket connection has been closed');
+            }
+            else {
+                self.sendQueue.push({message: data});
+                self.fireQueue();
+            }
 
+        });
+    };
+
+    getDataStream():Subject<any>{
+        return this.dataStream;
+    }
     static create(url:string, protocols:Array<string>):WebSocket {
         var match = new RegExp('wss?:\/\/').test(url);
         if (!match) {
@@ -89,7 +108,7 @@ export class $WebSocket  {
             this.socket.send(
                 isString(data.message) ? data.message : JSON.stringify(data.message)
             );
-            data.deferred.resolve();
+            // data.deferred.resolve();
         }
     }
 
@@ -156,22 +175,7 @@ export class $WebSocket  {
     };
 
 
-    send(data) {
-        var self = this;
-        var promise =  new Promise((resolve, reject) => {
-            if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
-                reject('Socket connection has been closed');
-            }
-            else {
-                self.sendQueue.push({
-                    message: data,
-                    deferred: promise
-                });
-                self.fireQueue();
-            }
 
-        });
-    };
 
 
     reconnect() {
@@ -206,22 +210,22 @@ export class $WebSocket  {
             throw new Error('state must be an integer between 0 and 4, got: ' + state);
         }
 
-
         this.internalConnectionState = state;
 
-
-        this.sendQueue.forEach((pending)=>{
-            pending.deferred.reject('Message cancelled due to closed socket connection');
-        });
     }
 
+    /**
+     * Could be -1 if not initzialized yet
+     * @returns {number}
+     */
     getReadyState() {
+        if (this.socket == null)
+        {
+            return -1;
+        }
         return this.internalConnectionState || this.socket.readyState;
     }
 
-    setReadyState() {
-        throw new Error('The readyState property is read-only');
-    }
 
 
 }

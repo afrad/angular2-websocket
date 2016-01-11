@@ -8,8 +8,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('angular2/core');
-var Observable_1 = require("rxjs/Observable");
 var lang_1 = require('angular2/src/facade/lang');
+var Subject_1 = require("rxjs/Subject");
 var $WebSocket = (function () {
     function $WebSocket(url, protocols, config) {
         this.url = url;
@@ -31,12 +31,11 @@ var $WebSocket = (function () {
         this.normalCloseCode = 1000;
         this.reconnectableStatusCodes = [4000];
         this.config = config || { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false };
-        if (url) {
-            this.connect();
-        }
-        else {
-            this.setInternalState(0);
-        }
+        /*   if (url) {
+         this.connect();
+         } else {
+         this.setInternalState(0);
+         }*/
     }
     $WebSocket.prototype.connect = function (force) {
         var _this = this;
@@ -44,30 +43,46 @@ var $WebSocket = (function () {
         var self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
             self.socket = $WebSocket.create(this.url, this.protocols);
+            this.dataStream = new Subject_1.Subject();
             self.socket.onopen = function (ev) {
                 console.log('onOpen: %s', ev);
                 _this.onOpenHandler(ev);
             };
-            return new Observable_1.Observable(function (wsObserver) {
-                // load event handler
-                self.socket.onmessage = function (ev) {
-                    console.log('onNext: %s', ev.data);
-                    self.onMessageHandler(ev);
-                    wsObserver.next(ev);
-                };
-                // error event handler
-                _this.socket.onclose = function (ev) {
-                    console.log('onClose, completed');
-                    self.onCloseHandler(ev);
-                    wsObserver.complete();
-                };
-                _this.socket.onerror = function (ev) {
-                    console.log('onError');
-                    self.onErrorHandler(ev);
-                    wsObserver.error(ev);
-                };
-            });
+            self.socket.onmessage = function (ev) {
+                console.log('onNext: %s', ev.data);
+                self.onMessageHandler(ev);
+                _this.dataStream.next(ev);
+            };
+            this.socket.onclose = function (ev) {
+                console.log('onClose, completed');
+                self.onCloseHandler(ev);
+                _this.dataStream.complete();
+            };
+            this.socket.onerror = function (ev) {
+                console.log('onError');
+                self.onErrorHandler(ev);
+                _this.dataStream.error(ev);
+            };
         }
+    };
+    $WebSocket.prototype.send = function (data) {
+        var self = this;
+        if (this.getReadyState() != this.readyStateConstants.OPEN && this.getReadyState() != this.readyStateConstants.CONNECTING) {
+            this.connect();
+        }
+        return new Promise(function (resolve, reject) {
+            if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
+                reject('Socket connection has been closed');
+            }
+            else {
+                self.sendQueue.push({ message: data });
+                self.fireQueue();
+            }
+        });
+    };
+    ;
+    $WebSocket.prototype.getDataStream = function () {
+        return this.dataStream;
     };
     $WebSocket.create = function (url, protocols) {
         var match = new RegExp('wss?:\/\/').test(url);
@@ -92,7 +107,6 @@ var $WebSocket = (function () {
         while (this.sendQueue.length && this.socket.readyState === this.readyStateConstants.OPEN) {
             var data = this.sendQueue.shift();
             this.socket.send(lang_1.isString(data.message) ? data.message : JSON.stringify(data.message));
-            data.deferred.resolve();
         }
     };
     $WebSocket.prototype.notifyCloseCallbacks = function (event) {
@@ -151,22 +165,6 @@ var $WebSocket = (function () {
         this.notifyErrorCallbacks(event);
     };
     ;
-    $WebSocket.prototype.send = function (data) {
-        var self = this;
-        var promise = new Promise(function (resolve, reject) {
-            if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
-                reject('Socket connection has been closed');
-            }
-            else {
-                self.sendQueue.push({
-                    message: data,
-                    deferred: promise
-                });
-                self.fireQueue();
-            }
-        });
-    };
-    ;
     $WebSocket.prototype.reconnect = function () {
         this.close(true);
         var backoffDelay = this.getBackoffDelay(++this.reconnectAttempts);
@@ -198,15 +196,16 @@ var $WebSocket = (function () {
             throw new Error('state must be an integer between 0 and 4, got: ' + state);
         }
         this.internalConnectionState = state;
-        this.sendQueue.forEach(function (pending) {
-            pending.deferred.reject('Message cancelled due to closed socket connection');
-        });
     };
+    /**
+     * Could be -1 if not initzialized yet
+     * @returns {number}
+     */
     $WebSocket.prototype.getReadyState = function () {
+        if (this.socket == null) {
+            return -1;
+        }
         return this.internalConnectionState || this.socket.readyState;
-    };
-    $WebSocket.prototype.setReadyState = function () {
-        throw new Error('The readyState property is read-only');
     };
     $WebSocket = __decorate([
         core_1.Injectable(), 
