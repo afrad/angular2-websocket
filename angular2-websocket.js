@@ -30,36 +30,35 @@ var $WebSocket = (function () {
         };
         this.normalCloseCode = 1000;
         this.reconnectableStatusCodes = [4000];
+        var match = new RegExp('wss?:\/\/').test(url);
+        if (!match) {
+            throw new Error('Invalid url provided');
+        }
         this.config = config || { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false };
-        /*   if (url) {
-         this.connect();
-         } else {
-         this.setInternalState(0);
-         }*/
+        this.dataStream = new Subject_1.Subject();
     }
     $WebSocket.prototype.connect = function (force) {
         var _this = this;
         if (force === void 0) { force = false; }
         var self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
-            self.socket = $WebSocket.create(this.url, this.protocols);
-            this.dataStream = new Subject_1.Subject();
+            self.socket = this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
             self.socket.onopen = function (ev) {
-                console.log('onOpen: %s', ev);
+                //    console.log('onOpen: %s', ev);
                 _this.onOpenHandler(ev);
             };
             self.socket.onmessage = function (ev) {
-                console.log('onNext: %s', ev.data);
+                //   console.log('onNext: %s', ev.data);
                 self.onMessageHandler(ev);
                 _this.dataStream.next(ev);
             };
             this.socket.onclose = function (ev) {
-                console.log('onClose, completed');
+                //     console.log('onClose, completed');
                 self.onCloseHandler(ev);
                 _this.dataStream.complete();
             };
             this.socket.onerror = function (ev) {
-                console.log('onError');
+                //    console.log('onError', ev);
                 self.onErrorHandler(ev);
                 _this.dataStream.error(ev);
             };
@@ -84,14 +83,6 @@ var $WebSocket = (function () {
     $WebSocket.prototype.getDataStream = function () {
         return this.dataStream;
     };
-    $WebSocket.create = function (url, protocols) {
-        var match = new RegExp('wss?:\/\/').test(url);
-        if (!match) {
-            throw new Error('Invalid url provided');
-        }
-        return protocols ? new WebSocket(url, protocols) : new WebSocket(url);
-    };
-    ;
     $WebSocket.prototype.onOpenHandler = function (event) {
         this.reconnectAttempts = 0;
         this.notifyOpenCallbacks(event);
@@ -169,7 +160,7 @@ var $WebSocket = (function () {
         this.close(true);
         var backoffDelay = this.getBackoffDelay(++this.reconnectAttempts);
         var backoffDelaySeconds = backoffDelay / 1000;
-        console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
+        // console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
         setTimeout(this.connect(), backoffDelay);
         return this;
     };

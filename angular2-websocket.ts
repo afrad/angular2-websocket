@@ -41,22 +41,22 @@ export class $WebSocket  {
             self.socket =this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
 
             self.socket.onopen =(ev: Event) => {
-                console.log('onOpen: %s', ev);
+            //    console.log('onOpen: %s', ev);
                 this.onOpenHandler(ev);
             };
             self.socket.onmessage = (ev: MessageEvent) => {
-                console.log('onNext: %s', ev.data);
+                //   console.log('onNext: %s', ev.data);
                 self.onMessageHandler(ev);
                 this.dataStream.next(ev);
             };
             this.socket.onclose = (ev: CloseEvent) => {
-                console.log('onClose, completed');
+                //     console.log('onClose, completed');
                 self.onCloseHandler(ev);
                 this.dataStream.complete()
             };
 
             this.socket.onerror = (ev: ErrorEvent) => {
-                console.log('onError', ev);
+                //    console.log('onError', ev);
                 self.onErrorHandler(ev);
                 this.dataStream.error(ev);
             };
@@ -175,7 +175,7 @@ export class $WebSocket  {
         this.close(true);
         var backoffDelay = this.getBackoffDelay(++this.reconnectAttempts);
         var backoffDelaySeconds = backoffDelay / 1000;
-        console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
+        // console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
         setTimeout( this.connect(), backoffDelay);
         return this;
     }
