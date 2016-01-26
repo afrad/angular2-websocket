@@ -141,7 +141,7 @@ var $WebSocket = (function () {
         var currentCallback;
         for (var i = 0; i < self.onMessageCallbacks.length; i++) {
             currentCallback = self.onMessageCallbacks[i];
-            currentCallback.fn.apply(self, message);
+            currentCallback.fn.apply(self, [message]);
         }
     };
     ;

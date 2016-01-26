@@ -17,3 +17,7 @@ ws.send(event);
 
 also 
 ws.getDataStream() returns Subject<any> to which you can attach an Observer (https://github.com/Reactive-Extensions/RxJS)
+
+## compilation 
+```bash 
+npm run compile
