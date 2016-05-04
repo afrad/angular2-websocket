@@ -206,3 +206,4 @@ var $WebSocket = (function () {
     return $WebSocket;
 }());
 exports.$WebSocket = $WebSocket;
+//# sourceMappingURL=angular2-websocket.js.map
