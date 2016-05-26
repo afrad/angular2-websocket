@@ -1,4 +1,5 @@
 import { Observable } from "rxjs/Observable";
+import { Subject } from "rxjs/Subject";
 export interface WebSocketConfig {
     initialTimeout: number;
     maxTimeout: number;
@@ -34,11 +35,12 @@ export declare class $WebSocket {
     onMessageHandler(message: MessageEvent): void;
     onCloseHandler(event: CloseEvent): void;
     onErrorHandler(event: any): void;
-    send(data: any): void;
+    send(data: any): Promise<{}>;
     reconnect(): this;
     close(force: boolean): this;
     getBackoffDelay(attempt: any): number;
     setInternalState(state: any): void;
     getReadyState(): number;
     setReadyState(): void;
+    getDataStream(): Subject<{}>;
 }
