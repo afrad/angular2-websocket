@@ -6,8 +6,10 @@
     "sourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "removeComments": false
+    "removeComments": false,
+    "outDir": "./"
   },
+  
   "exclude": [
     "node_modules",
     "typings/main",
