@@ -20,7 +20,7 @@ export declare class $WebSocket {
     private reconnectableStatusCodes;
     private socket;
     private internalConnectionState;
-    constructor(url: string, protocols: Array<string>, config?: WebSocketConfig);
+    constructor(url: string, protocols?: Array<string>, config?: WebSocketConfig);
     connect(force?: boolean): Observable<{}>;
     static create(url: string, protocols: Array<string>): WebSocket;
     onOpenHandler(event: Event): void;
