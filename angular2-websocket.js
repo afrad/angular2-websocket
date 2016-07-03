@@ -98,7 +98,7 @@ var $WebSocket = (function () {
     $WebSocket.prototype.fireQueue = function () {
         while (this.sendQueue.length && this.socket.readyState === this.readyStateConstants.OPEN) {
             var data = this.sendQueue.shift();
-            this.socket.send(lang_1.isString(data.message) ? data.message : JSON.stringify(data.message));
+            this.socket.send(data.message);
         }
     };
     $WebSocket.prototype.notifyCloseCallbacks = function (event) {
