@@ -35,7 +35,7 @@ export declare class $WebSocket {
     onMessageHandler(message: MessageEvent): void;
     onCloseHandler(event: CloseEvent): void;
     onErrorHandler(event: any): void;
-    send(data: any): Promise<{}>;
+    send(data: any): Observable<{}>;
     reconnect(): this;
     close(force: boolean): this;
     getBackoffDelay(attempt: any): number;

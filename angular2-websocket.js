@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
+var Observable_1 = require("rxjs/Observable");
 var lang_1 = require('@angular/compiler/src/facade/lang');
 var Subject_1 = require("rxjs/Subject");
 var $WebSocket = (function () {
@@ -70,9 +71,9 @@ var $WebSocket = (function () {
         if (this.getReadyState() != this.readyStateConstants.OPEN && this.getReadyState() != this.readyStateConstants.CONNECTING) {
             this.connect();
         }
-        return new Promise(function (resolve, reject) {
+        return Observable_1.Observable.create(function (observer) {
             if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
-                reject('Socket connection has been closed');
+                observer.next('Socket connection has been closed');
             }
             else {
                 self.sendQueue.push({ message: data });
