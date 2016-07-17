@@ -68,9 +68,9 @@ export class $WebSocket  {
         if (this.getReadyState() != this.readyStateConstants.OPEN &&this.getReadyState() != this.readyStateConstants.CONNECTING ){
             this.connect();
         }
-        return new Promise((resolve, reject) => {
+        return Observable.create((observer) => {
             if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
-                reject('Socket connection has been closed');
+                observer.next('Socket connection has been closed');
             }
             else {
                 self.sendQueue.push({message: data});
