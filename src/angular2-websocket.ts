@@ -52,7 +52,6 @@ export class $WebSocket  {
             this.socket.onclose = (ev: CloseEvent) => {
                 //     console.log('onClose, completed');
                 self.onCloseHandler(ev);
-                this.dataStream.complete()
             };
 
             this.socket.onerror = (ev: ErrorEvent) => {
@@ -160,6 +159,8 @@ export class $WebSocket  {
         this.notifyCloseCallbacks(event);
         if ((this.config.reconnectIfNotNormalClose && event.code !== this.normalCloseCode) || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
             this.reconnect();
+        } else {
+            this.dataStream.complete();
         }
     };
 
