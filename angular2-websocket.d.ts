@@ -42,5 +42,5 @@ export declare class $WebSocket {
     setInternalState(state: any): void;
     getReadyState(): number;
     setReadyState(): void;
-    getDataStream(): Subject<{}>;
+    getDataStream(): Subject<any>;
 }
