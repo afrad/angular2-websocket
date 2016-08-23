@@ -57,7 +57,6 @@ var $WebSocket = (function () {
             this.socket.onclose = function (ev) {
                 //     console.log('onClose, completed');
                 self.onCloseHandler(ev);
-                _this.dataStream.complete();
             };
             this.socket.onerror = function (ev) {
                 //    console.log('onError', ev);
@@ -151,6 +150,9 @@ var $WebSocket = (function () {
         this.notifyCloseCallbacks(event);
         if ((this.config.reconnectIfNotNormalClose && event.code !== this.normalCloseCode) || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
             this.reconnect();
+        }
+        else {
+            this.dataStream.complete();
         }
     };
     ;
