@@ -97,9 +97,7 @@ export class $WebSocket  {
         while (this.sendQueue.length && this.socket.readyState === this.readyStateConstants.OPEN) {
             var data = this.sendQueue.shift();
 
-            this.socket.send(
-                isString(data.message) ? data.message : JSON.stringify(data.message)
-            );
+            this.socket.send(data.message);
             // data.deferred.resolve();
         }
     }
