@@ -10,7 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require('@angular/core');
 var Observable_1 = require("rxjs/Observable");
-var lang_1 = require('@angular/compiler/src/facade/lang');
 var Subject_1 = require("rxjs/Subject");
 var $WebSocket = (function () {
     function $WebSocket(url, protocols, config) {
@@ -98,7 +97,7 @@ var $WebSocket = (function () {
     $WebSocket.prototype.fireQueue = function () {
         while (this.sendQueue.length && this.socket.readyState === this.readyStateConstants.OPEN) {
             var data = this.sendQueue.shift();
-            this.socket.send(lang_1.isString(data.message) ? data.message : JSON.stringify(data.message));
+            this.socket.send($WebSocket.Helpers.isString(data.message) ? data.message : JSON.stringify(data.message));
         }
     };
     $WebSocket.prototype.notifyCloseCallbacks = function (event) {
@@ -126,7 +125,7 @@ var $WebSocket = (function () {
     };
     ;
     $WebSocket.prototype.onMessage = function (callback, options) {
-        if (!lang_1.isFunction(callback)) {
+        if (!$WebSocket.Helpers.isFunction(callback)) {
             throw new Error('Callback must be a function');
         }
         this.onMessageCallbacks.push({
@@ -202,6 +201,23 @@ var $WebSocket = (function () {
         }
         return this.internalConnectionState || this.socket.readyState;
     };
+    $WebSocket.Helpers = (function () {
+        function class_1() {
+        }
+        class_1.isPresent = function (obj) {
+            return obj !== undefined && obj !== null;
+        };
+        class_1.isString = function (obj) {
+            return typeof obj === "string";
+        };
+        class_1.isArray = function (obj) {
+            return Array.isArray(obj);
+        };
+        class_1.isFunction = function (obj) {
+            return typeof obj === "function";
+        };
+        return class_1;
+    }());
     $WebSocket = __decorate([
         core_1.Injectable(), 
         __metadata('design:paramtypes', [String, Array, Object])
