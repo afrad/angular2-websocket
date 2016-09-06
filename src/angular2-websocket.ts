@@ -6,6 +6,24 @@ import {Subject} from 'rxjs/Subject';
 @Injectable()
 export class $WebSocket {
 
+    private static Helpers = class {
+        static isPresent(obj: any): boolean {
+            return obj !== undefined && obj !== null;
+        }
+
+        static isString(obj: any): boolean {
+            return typeof obj === 'string';
+        }
+
+        static isArray(obj: any): boolean {
+            return Array.isArray(obj);
+        }
+
+        static isFunction(obj: any): boolean {
+            return typeof obj === 'function';
+        }
+    };
+
     private reconnectAttempts = 0;
     private sendQueue = [];
     private onOpenCallbacks = [];
@@ -60,7 +78,7 @@ export class $WebSocket {
 
         }
     }
-    send(data) {
+    send(data): Observable<any> {
         let self = this;
         if (this.getReadyState() !== this.readyStateConstants.OPEN
                 && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
@@ -214,24 +232,6 @@ export class $WebSocket {
         }
         return this.internalConnectionState || this.socket.readyState;
     }
-
-    private static Helpers = class {
-        static isPresent(obj: any): boolean {
-            return obj !== undefined && obj !== null;
-        }
-
-        static isString(obj: any): boolean {
-            return typeof obj === 'string';
-        }
-
-        static isArray(obj: any): boolean {
-            return Array.isArray(obj);
-        }
-
-        static isFunction(obj: any): boolean {
-            return typeof obj === 'function';
-        }
-    };
 }
 
 export interface WebSocketConfig {

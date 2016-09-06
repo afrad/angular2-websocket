@@ -21,7 +21,7 @@ export declare class $WebSocket {
     private socket;
     private internalConnectionState;
     constructor(url: string, protocols?: Array<string>, config?: WebSocketConfig);
-    connect(force?: boolean): Observable<{}>;
+    connect(force?: boolean): void;
     static create(url: string, protocols: Array<string>): WebSocket;
     onOpenHandler(event: Event): void;
     notifyOpenCallbacks(event: any): void;
@@ -35,7 +35,7 @@ export declare class $WebSocket {
     onMessageHandler(message: MessageEvent): void;
     onCloseHandler(event: CloseEvent): void;
     onErrorHandler(event: any): void;
-    send(data: any): Observable<{}>;
+    send(data: any): Observable<any>;
     reconnect(): this;
     close(force: boolean): this;
     getBackoffDelay(attempt: any): number;

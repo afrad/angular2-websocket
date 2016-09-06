@@ -25,10 +25,7 @@
     "member-ordering": [
       true,
       {
-        "order": [
-          "static-before-instance",
-          "variables-before-functions"
-        ]
+        "order": "fields-first"
       }
     ],
     "no-arg": true,
