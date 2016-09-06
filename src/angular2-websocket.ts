@@ -1,11 +1,28 @@
 import {Injectable} from '@angular/core';
-import {Observable} from "rxjs/Observable";
-import {Scheduler} from "rxjs/Rx";
-import {Subject} from "rxjs/Subject";
+import {Observable} from 'rxjs/Observable';
+import {Subject} from 'rxjs/Subject';
 
 
 @Injectable()
-export class $WebSocket  {
+export class $WebSocket {
+
+    private static Helpers = class {
+        static isPresent(obj: any): boolean {
+            return obj !== undefined && obj !== null;
+        }
+
+        static isString(obj: any): boolean {
+            return typeof obj === 'string';
+        }
+
+        static isArray(obj: any): boolean {
+            return Array.isArray(obj);
+        }
+
+        static isFunction(obj: any): boolean {
+            return typeof obj === 'function';
+        }
+    };
 
     private reconnectAttempts = 0;
     private sendQueue = [];
@@ -20,27 +37,27 @@ export class $WebSocket  {
         'CLOSED': 3,
         'RECONNECT_ABORTED': 4
     };
-    private  normalCloseCode = 1000;
-    private  reconnectableStatusCodes = [4000];
+    private normalCloseCode = 1000;
+    private reconnectableStatusCodes = [4000];
     private socket: WebSocket;
     private dataStream: Subject<any>;
-    private  internalConnectionState: number;
-    constructor(private url:string, private protocols?:Array<string>, private config?: WebSocketConfig  ) {
-        var match = new RegExp('wss?:\/\/').test(url);
+    private internalConnectionState: number;
+    constructor(private url: string, private protocols?: Array<string>, private config?: WebSocketConfig) {
+        let match = new RegExp('wss?:\/\/').test(url);
         if (!match) {
             throw new Error('Invalid url provided');
         }
-        this.config = config ||{ initialTimeout: 500, maxTimeout : 300000, reconnectIfNotNormalClose :false};
+        this.config = config || { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false };
         this.dataStream = new Subject();
     }
 
-    connect(force:boolean = false) {
-        var self = this;
+    connect(force = false) {
+        let self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
-            self.socket =this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
+            self.socket = this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
 
-            self.socket.onopen =(ev: Event) => {
-            //    console.log('onOpen: %s', ev);
+            self.socket.onopen = (ev: Event) => {
+                //    console.log('onOpen: %s', ev);
                 this.onOpenHandler(ev);
             };
             self.socket.onmessage = (ev: MessageEvent) => {
@@ -61,24 +78,23 @@ export class $WebSocket  {
 
         }
     }
-    send(data) {
-        var self = this;
-        if (this.getReadyState() != this.readyStateConstants.OPEN &&this.getReadyState() != this.readyStateConstants.CONNECTING ){
+    send(data): Observable<any> {
+        let self = this;
+        if (this.getReadyState() !== this.readyStateConstants.OPEN
+                && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
             this.connect();
         }
         return Observable.create((observer) => {
             if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
                 observer.next('Socket connection has been closed');
-            }
-            else {
-                self.sendQueue.push({message: data});
+            } else {
+                self.sendQueue.push({ message: data });
                 self.fireQueue();
             }
-
         });
     };
 
-    getDataStream():Subject<any>{
+    getDataStream(): Subject<any> {
         return this.dataStream;
     }
 
@@ -94,7 +110,7 @@ export class $WebSocket  {
     }
     fireQueue() {
         while (this.sendQueue.length && this.socket.readyState === this.readyStateConstants.OPEN) {
-            var data = this.sendQueue.shift();
+            let data = this.sendQueue.shift();
 
             this.socket.send(
                 $WebSocket.Helpers.isString(data.message) ? data.message : JSON.stringify(data.message)
@@ -110,7 +126,7 @@ export class $WebSocket  {
     }
 
     notifyErrorCallbacks(event) {
-        for (var i = 0; i < this.onErrorCallbacks.length; i++) {
+        for (let i = 0; i < this.onErrorCallbacks.length; i++) {
             this.onErrorCallbacks[i].call(this, event);
         }
     }
@@ -145,18 +161,17 @@ export class $WebSocket  {
     }
 
     onMessageHandler(message: MessageEvent) {
-        var pattern;
-        var self = this;
-        var currentCallback;
-        for (var i = 0; i < self.onMessageCallbacks.length; i++) {
+        let self = this;
+        let currentCallback;
+        for (let i = 0; i < self.onMessageCallbacks.length; i++) {
             currentCallback = self.onMessageCallbacks[i];
             currentCallback.fn.apply(self, [message]);
         }
-
     };
     onCloseHandler(event: CloseEvent) {
         this.notifyCloseCallbacks(event);
-        if ((this.config.reconnectIfNotNormalClose && event.code !== this.normalCloseCode) || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
+        if ((this.config.reconnectIfNotNormalClose && event.code !== this.normalCloseCode)
+                || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
             this.reconnect();
         } else {
             this.dataStream.complete();
@@ -173,10 +188,10 @@ export class $WebSocket  {
 
     reconnect() {
         this.close(true);
-        var backoffDelay = this.getBackoffDelay(++this.reconnectAttempts);
-        var backoffDelaySeconds = backoffDelay / 1000;
+        let backoffDelay = this.getBackoffDelay(++this.reconnectAttempts);
+        // let backoffDelaySeconds = backoffDelay / 1000;
         // console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
-        setTimeout( this.connect(), backoffDelay);
+        setTimeout(this.connect(), backoffDelay);
         return this;
     }
 
@@ -189,11 +204,11 @@ export class $WebSocket  {
     // Exponential Backoff Formula by Prof. Douglas Thain
     // http://dthain.blogspot.co.uk/2009/02/exponential-backoff-in-distributed.html
     getBackoffDelay(attempt) {
-        var R = Math.random() + 1;
-        var T = this.config.initialTimeout;
-        var F = 2;
-        var N = attempt;
-        var M = this.config.maxTimeout;
+        let R = Math.random() + 1;
+        let T = this.config.initialTimeout;
+        let F = 2;
+        let N = attempt;
+        let M = this.config.maxTimeout;
 
         return Math.floor(Math.min(R * T * Math.pow(F, N), M));
     };
@@ -212,35 +227,16 @@ export class $WebSocket  {
      * @returns {number}
      */
     getReadyState() {
-        if (this.socket == null)
-        {
+        if (this.socket == null) {
             return -1;
         }
         return this.internalConnectionState || this.socket.readyState;
     }
-
-    private static Helpers = class {
-        static isPresent(obj: any): boolean {
-            return obj !== undefined && obj !== null;
-        }
-
-        static isString(obj: any): boolean {
-            return typeof obj === "string";
-        }
-
-        static isArray(obj: any): boolean {
-            return Array.isArray(obj);
-        }
-
-        static isFunction(obj: any): boolean {
-            return typeof obj === "function";
-        }
-    }
 }
 
 export interface WebSocketConfig {
-    initialTimeout:number;
-    maxTimeout:number ;
-    reconnectIfNotNormalClose: boolean
+    initialTimeout: number;
+    maxTimeout: number;
+    reconnectIfNotNormalClose: boolean;
 }
 
