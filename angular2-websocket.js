@@ -9,8 +9,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var Observable_1 = require("rxjs/Observable");
-var Subject_1 = require("rxjs/Subject");
+var Observable_1 = require('rxjs/Observable');
+var Subject_1 = require('rxjs/Subject');
 var $WebSocket = (function () {
     function $WebSocket(url, protocols, config) {
         this.url = url;
@@ -66,7 +66,8 @@ var $WebSocket = (function () {
     };
     $WebSocket.prototype.send = function (data) {
         var self = this;
-        if (this.getReadyState() != this.readyStateConstants.OPEN && this.getReadyState() != this.readyStateConstants.CONNECTING) {
+        if (this.getReadyState() !== this.readyStateConstants.OPEN
+            && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
             this.connect();
         }
         return Observable_1.Observable.create(function (observer) {
@@ -136,7 +137,6 @@ var $WebSocket = (function () {
         return this;
     };
     $WebSocket.prototype.onMessageHandler = function (message) {
-        var pattern;
         var self = this;
         var currentCallback;
         for (var i = 0; i < self.onMessageCallbacks.length; i++) {
@@ -147,7 +147,8 @@ var $WebSocket = (function () {
     ;
     $WebSocket.prototype.onCloseHandler = function (event) {
         this.notifyCloseCallbacks(event);
-        if ((this.config.reconnectIfNotNormalClose && event.code !== this.normalCloseCode) || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
+        if ((this.config.reconnectIfNotNormalClose && event.code !== this.normalCloseCode)
+            || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
             this.reconnect();
         }
         else {
@@ -162,7 +163,7 @@ var $WebSocket = (function () {
     $WebSocket.prototype.reconnect = function () {
         this.close(true);
         var backoffDelay = this.getBackoffDelay(++this.reconnectAttempts);
-        var backoffDelaySeconds = backoffDelay / 1000;
+        // let backoffDelaySeconds = backoffDelay / 1000;
         // console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
         setTimeout(this.connect(), backoffDelay);
         return this;
@@ -208,13 +209,13 @@ var $WebSocket = (function () {
             return obj !== undefined && obj !== null;
         };
         class_1.isString = function (obj) {
-            return typeof obj === "string";
+            return typeof obj === 'string';
         };
         class_1.isArray = function (obj) {
             return Array.isArray(obj);
         };
         class_1.isFunction = function (obj) {
-            return typeof obj === "function";
+            return typeof obj === 'function';
         };
         return class_1;
     }());
