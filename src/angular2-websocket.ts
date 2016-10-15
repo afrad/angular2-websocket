@@ -191,7 +191,7 @@ export class $WebSocket {
         let backoffDelay = this.getBackoffDelay(++this.reconnectAttempts);
         // let backoffDelaySeconds = backoffDelay / 1000;
         // console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
-        setTimeout(this.connect(), backoffDelay);
+        setTimeout(() => this.connect(), backoffDelay);
         return this;
     }
 
