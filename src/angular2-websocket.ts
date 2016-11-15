@@ -2,10 +2,6 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 
-export enum SendMode {
-    Direct, Promise, Observable
-}
-
 @Injectable()
 export class $WebSocket {
 
@@ -142,13 +138,13 @@ export class $WebSocket {
         });
     }
 
-    private send4Mode = SendMode.Observable;
+    private send4Mode: WebSocketSendMode = WebSocketSendMode.Observable;
 
     /**
      * Set send(data) function return mode
      * @param mode
      */
-    setSend4Mode(mode: SendMode): void {
+    setSend4Mode(mode: WebSocketSendMode): void {
         this.send4Mode = mode;
     }
 
@@ -159,16 +155,16 @@ export class $WebSocket {
      * @param mode
      * @returns {any}
      */
-    send(data: any, mode?: SendMode): any {
+    send(data: any, mode?: WebSocketSendMode): any {
         switch (typeof mode !== "undefined" ? mode : this.send4Mode) {
-            case SendMode.Direct:
+            case WebSocketSendMode.Direct:
                 return this.send4Direct(data);
-            case SendMode.Promise:
+            case WebSocketSendMode.Promise:
                 return this.send4Promise(data);
-            case SendMode.Observable:
+            case WebSocketSendMode.Observable:
                 return this.send4Observable(data);
             default:
-                throw Error("SendMode Error.");
+                throw Error("WebSocketSendMode Error.");
         }
     }
 
@@ -228,8 +224,7 @@ export class $WebSocket {
         return this;
     };
 
-
-    onMessage(callback, options) {
+    onMessage(callback, options?) {
         if (!$WebSocket.Helpers.isFunction(callback)) {
             throw new Error('Callback must be a function');
         }
@@ -320,5 +315,9 @@ export interface WebSocketConfig {
     initialTimeout: number;
     maxTimeout: number;
     reconnectIfNotNormalClose: boolean;
+}
+
+export enum WebSocketSendMode {
+    Direct, Promise, Observable
 }
 

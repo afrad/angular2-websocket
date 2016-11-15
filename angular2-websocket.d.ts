@@ -1,10 +1,5 @@
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-export declare enum SendMode {
-    Direct = 0,
-    Promise = 1,
-    Observable = 2,
-}
 export declare class $WebSocket {
     private url;
     private protocols;
@@ -26,14 +21,14 @@ export declare class $WebSocket {
     connect(force?: boolean): void;
     /**
      * Run in Block Mode
-     * Return true when send ok and false in socket closed
+     * Return true when can send and false in socket closed
      * @param data
      * @returns {boolean}
      */
     send4Direct(data: any): boolean;
     /**
      * Return Promise
-     * When Send end will resolve Promise
+     * When can Send will resolve Promise
      * When Socket closed will reject Promise
      * @param data
      * @returns {Promise<any>}
@@ -41,7 +36,7 @@ export declare class $WebSocket {
     send4Promise(data: any): Promise<any>;
     /**
      * Return cold Observable
-     * When Send end will complete observer
+     * When can Send will complete observer
      * When Socket closed will error observer
      * @param data
      * @returns {Observable<any>}
@@ -52,7 +47,7 @@ export declare class $WebSocket {
      * Set send(data) function return mode
      * @param mode
      */
-    setSend4Mode(mode: SendMode): void;
+    setSend4Mode(mode: WebSocketSendMode): void;
     /**
      * Use {mode} mode to send {data} data
      * If no specify, Default SendMode is Observable mode
@@ -60,7 +55,7 @@ export declare class $WebSocket {
      * @param mode
      * @returns {any}
      */
-    send(data: any, mode?: SendMode): any;
+    send(data: any, mode?: WebSocketSendMode): any;
     getDataStream(): Subject<any>;
     onOpenHandler(event: Event): void;
     notifyOpenCallbacks(event: any): void;
@@ -70,7 +65,7 @@ export declare class $WebSocket {
     onOpen(cb: any): this;
     onClose(cb: any): this;
     onError(cb: any): this;
-    onMessage(callback: any, options: any): this;
+    onMessage(callback: any, options?: any): this;
     onMessageHandler(message: MessageEvent): void;
     onCloseHandler(event: CloseEvent): void;
     onErrorHandler(event: any): void;
@@ -88,4 +83,9 @@ export interface WebSocketConfig {
     initialTimeout: number;
     maxTimeout: number;
     reconnectIfNotNormalClose: boolean;
+}
+export declare enum WebSocketSendMode {
+    Direct = 0,
+    Promise = 1,
+    Observable = 2,
 }
