@@ -70,7 +70,7 @@ export declare class $WebSocket {
     onCloseHandler(event: CloseEvent): void;
     onErrorHandler(event: any): void;
     reconnect(): this;
-    close(force: boolean): this;
+    close(force?: boolean): this;
     getBackoffDelay(attempt: any): number;
     setInternalState(state: any): void;
     /**

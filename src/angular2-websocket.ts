@@ -261,7 +261,6 @@ export class $WebSocket {
         this.notifyErrorCallbacks(event);
     };
 
-
     reconnect() {
         this.close(true);
         let backoffDelay = this.getBackoffDelay(++this.reconnectAttempts);
@@ -271,7 +270,7 @@ export class $WebSocket {
         return this;
     }
 
-    close(force: boolean) {
+    close(force: boolean = false) {
         if (force || !this.socket.bufferedAmount) {
             this.socket.close();
         }
