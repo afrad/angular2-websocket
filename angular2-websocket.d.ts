@@ -55,7 +55,7 @@ export declare class $WebSocket {
     setSend4Mode(mode: SendMode): void;
     /**
      * Use {mode} mode to send {data} data
-     * If no specify, Default SendMode is Direct(block) mode
+     * If no specify, Default SendMode is Observable mode
      * @param data
      * @param mode
      * @returns {any}
