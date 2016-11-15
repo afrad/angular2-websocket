@@ -53,29 +53,31 @@ export class $WebSocket {
         }
         this.config = config || {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false};
         this.dataStream = new Subject();
+        this.connect(true);
     }
 
     connect(force = false) {
+        // console.log("WebSocket connecting...");
         let self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
             self.socket = this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
 
             self.socket.onopen = (ev: Event) => {
-                //    console.log('onOpen: %s', ev);
+                // console.log('onOpen: ', ev);
                 this.onOpenHandler(ev);
             };
             self.socket.onmessage = (ev: MessageEvent) => {
-                //   console.log('onNext: %s', ev.data);
-                self.onMessageHandler(ev);
+                // console.log('onNext: ', ev.data);
+                // self.onMessageHandler(ev);
                 this.dataStream.next(ev);
             };
             this.socket.onclose = (ev: CloseEvent) => {
-                //     console.log('onClose, completed');
+                // console.log('onClose ', ev);
                 self.onCloseHandler(ev);
             };
 
             this.socket.onerror = (ev: ErrorEvent) => {
-                //    console.log('onError', ev);
+                // console.log('onError ', ev);
                 self.onErrorHandler(ev);
                 this.dataStream.error(ev);
             };
@@ -85,7 +87,7 @@ export class $WebSocket {
 
     /**
      * Run in Block Mode
-     * Return true when send ok and false in socket closed
+     * Return true when can send and false in socket closed
      * @param data
      * @returns {boolean}
      */
@@ -95,10 +97,10 @@ export class $WebSocket {
             && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
             this.connect();
         }
-        if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
+        self.sendQueue.push({message: data});
+        if (self.socket.readyState !== self.readyStateConstants.RECONNECT_ABORTED) {
             return false;
         } else {
-            self.sendQueue.push({message: data});
             self.fireQueue();
             return true;
         }
@@ -106,18 +108,18 @@ export class $WebSocket {
 
     /**
      * Return Promise
-     * When Send end will resolve Promise
+     * When can Send will resolve Promise
      * When Socket closed will reject Promise
      * @param data
      * @returns {Promise<any>}
      */
     send4Promise(data): Promise<any> {
         return new Promise(
-            (resolve, reject)=> {
+            (resolve, reject) => {
                 if (this.send4Direct(data)) {
                     return resolve();
                 } else {
-                    return reject('Socket connection has been closed');
+                    return reject(Error('Socket connection has been closed'));
                 }
             }
         )
@@ -125,7 +127,7 @@ export class $WebSocket {
 
     /**
      * Return cold Observable
-     * When Send end will complete observer
+     * When can Send will complete observer
      * When Socket closed will error observer
      * @param data
      * @returns {Observable<any>}
@@ -158,7 +160,7 @@ export class $WebSocket {
      * @returns {any}
      */
     send(data: any, mode?: SendMode): any {
-        switch (mode || this.send4Mode) {
+        switch (typeof mode !== "undefined" ? mode : this.send4Mode) {
             case SendMode.Direct:
                 return this.send4Direct(data);
             case SendMode.Promise:
@@ -187,9 +189,11 @@ export class $WebSocket {
     }
 
     fireQueue() {
+        // console.log("fireQueue()");
         while (this.sendQueue.length && this.socket.readyState === this.readyStateConstants.OPEN) {
             let data = this.sendQueue.shift();
 
+            // console.log("fireQueue: ", data);
             this.socket.send(
                 $WebSocket.Helpers.isString(data.message) ? data.message : JSON.stringify(data.message)
             );
@@ -253,6 +257,7 @@ export class $WebSocket {
             || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
             this.reconnect();
         } else {
+            this.sendQueue = [];
             this.dataStream.complete();
         }
     };
