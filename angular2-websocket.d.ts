@@ -60,7 +60,7 @@ export declare class $WebSocket {
      * @param mode
      * @returns {any}
      */
-    send(data: any, mode?: SendMode): boolean | Promise<any> | Observable<any>;
+    send(data: any, mode?: SendMode): any;
     getDataStream(): Subject<any>;
     onOpenHandler(event: Event): void;
     notifyOpenCallbacks(event: any): void;

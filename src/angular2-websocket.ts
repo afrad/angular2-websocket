@@ -157,7 +157,7 @@ export class $WebSocket {
      * @param mode
      * @returns {any}
      */
-    send(data: any, mode?: SendMode): boolean | Promise<any> | Observable<any> {
+    send(data: any, mode?: SendMode): any {
         switch (mode || this.send4Mode) {
             case SendMode.Direct:
                 return this.send4Direct(data);
