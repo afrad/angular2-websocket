@@ -7,9 +7,9 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "removeComments": false,
-    "outDir": "./"
+    "outDir": "./",
+    "declaration": true
   },
-  
   "exclude": [
     "node_modules",
     "typings/main",

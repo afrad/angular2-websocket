@@ -2,6 +2,9 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 
+export enum SendMode {
+    Direct, Promise, Observable
+}
 
 @Injectable()
 export class $WebSocket {
@@ -42,12 +45,13 @@ export class $WebSocket {
     private socket: WebSocket;
     private dataStream: Subject<any>;
     private internalConnectionState: number;
+
     constructor(private url: string, private protocols?: Array<string>, private config?: WebSocketConfig) {
         let match = new RegExp('wss?:\/\/').test(url);
         if (!match) {
             throw new Error('Invalid url provided');
         }
-        this.config = config || { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false };
+        this.config = config || {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false};
         this.dataStream = new Subject();
     }
 
@@ -78,21 +82,93 @@ export class $WebSocket {
 
         }
     }
-    send(data): Observable<any> {
+
+    /**
+     * Run in Block Mode
+     * Return true when send ok and false in socket closed
+     * @param data
+     * @returns {boolean}
+     */
+    send4Direct(data): boolean {
         let self = this;
         if (this.getReadyState() !== this.readyStateConstants.OPEN
-                && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
+            && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
             this.connect();
         }
+        if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
+            return false;
+        } else {
+            self.sendQueue.push({message: data});
+            self.fireQueue();
+            return true;
+        }
+    }
+
+    /**
+     * Return Promise
+     * When Send end will resolve Promise
+     * When Socket closed will reject Promise
+     * @param data
+     * @returns {Promise<any>}
+     */
+    send4Promise(data): Promise<any> {
+        return new Promise(
+            (resolve, reject)=> {
+                if (this.send4Direct(data)) {
+                    return resolve();
+                } else {
+                    return reject('Socket connection has been closed');
+                }
+            }
+        )
+    }
+
+    /**
+     * Return cold Observable
+     * When Send end will complete observer
+     * When Socket closed will error observer
+     * @param data
+     * @returns {Observable<any>}
+     */
+    send4Observable(data): Observable<any> {
         return Observable.create((observer) => {
-            if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
-                observer.next('Socket connection has been closed');
+            if (this.send4Direct(data)) {
+                return observer.complete();
             } else {
-                self.sendQueue.push({ message: data });
-                self.fireQueue();
+                return observer.error('Socket connection has been closed');
             }
         });
-    };
+    }
+
+    private send4Mode = SendMode.Observable;
+
+    /**
+     * Set send(data) function return mode
+     * @param mode
+     */
+    setSend4Mode(mode: SendMode): void {
+        this.send4Mode = mode;
+    }
+
+    /**
+     * Use {mode} mode to send {data} data
+     * If no specify, Default SendMode is Direct(block) mode
+     * @param data
+     * @param mode
+     * @returns {any}
+     */
+    send(data: any, mode?: SendMode): boolean | Promise<any> | Observable<any> {
+        switch (mode || this.send4Mode) {
+            case SendMode.Direct:
+                return this.send4Direct(data);
+            case SendMode.Promise:
+                return this.send4Promise(data);
+            case SendMode.Observable:
+                return this.send4Observable(data);
+            default:
+                throw Error("SendMode Error.");
+        }
+    }
 
     getDataStream(): Subject<any> {
         return this.dataStream;
@@ -102,12 +178,14 @@ export class $WebSocket {
         this.reconnectAttempts = 0;
         this.notifyOpenCallbacks(event);
         this.fireQueue();
-    };
+    }
+
     notifyOpenCallbacks(event) {
         for (let i = 0; i < this.onOpenCallbacks.length; i++) {
             this.onOpenCallbacks[i].call(this, event);
         }
     }
+
     fireQueue() {
         while (this.sendQueue.length && this.socket.readyState === this.readyStateConstants.OPEN) {
             let data = this.sendQueue.shift();
@@ -168,10 +246,11 @@ export class $WebSocket {
             currentCallback.fn.apply(self, [message]);
         }
     };
+
     onCloseHandler(event: CloseEvent) {
         this.notifyCloseCallbacks(event);
         if ((this.config.reconnectIfNotNormalClose && event.code !== this.normalCloseCode)
-                || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
+            || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
             this.reconnect();
         } else {
             this.dataStream.complete();
@@ -181,9 +260,6 @@ export class $WebSocket {
     onErrorHandler(event) {
         this.notifyErrorCallbacks(event);
     };
-
-
-
 
 
     reconnect() {
@@ -201,6 +277,7 @@ export class $WebSocket {
         }
         return this;
     };
+
     // Exponential Backoff Formula by Prof. Douglas Thain
     // http://dthain.blogspot.co.uk/2009/02/exponential-backoff-in-distributed.html
     getBackoffDelay(attempt) {
