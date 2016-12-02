@@ -25,6 +25,16 @@ npm run compile
 
 ```
 
+## Configuration
+The `WebSocketConfig` takes the following options:
+
+* initialTimeout: number;
+* maxTimeout: number;
+* reconnectIfNotNormalClose: boolean;
+* binaryType: string;
+
+The default value for binary type is 'arrayBuffer'.
+
 ## example
 ```ts
 import {$WebSocket, WebSocketSendMode} from 'angular2-websocket/angular2-websocket';

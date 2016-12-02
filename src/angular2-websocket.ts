@@ -47,7 +47,7 @@ export class $WebSocket {
         if (!match) {
             throw new Error('Invalid url provided');
         }
-        this.config = config || {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false};
+        this.config = config || {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false, binaryType: 'arraybuffer'};
         this.dataStream = new Subject();
         this.connect(true);
     }
@@ -57,6 +57,7 @@ export class $WebSocket {
         let self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
             self.socket = this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
+            self.socket.binaryType = self.config.binaryType;
 
             self.socket.onopen = (ev: Event) => {
                 // console.log('onOpen: ', ev);
@@ -314,6 +315,7 @@ export interface WebSocketConfig {
     initialTimeout: number;
     maxTimeout: number;
     reconnectIfNotNormalClose: boolean;
+    binaryType: string;
 }
 
 export enum WebSocketSendMode {
