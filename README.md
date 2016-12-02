@@ -25,13 +25,6 @@ npm run compile
 
 ```
 
-## Configuration
-The `WebSocketConfig` takes the following options:
-
-* initialTimeout: number;
-* maxTimeout: number;
-* reconnectIfNotNormalClose: boolean;
-* binaryType: string;
 
 The default value for binary type is 'arrayBuffer'.
 
@@ -115,4 +108,14 @@ ws.close(false);    // close
 ws.close(true);    // close immediately
 
 
+```
+
+## Binary type
+To set the binary type for the websocket one can provide it as string in the constructor. Allowed types are:
+
+* 'blob' (default)
+* 'arraybuffer'
+
+```ts
+var ws = new $WebSocket("ws://127.0.0.1:7000", null, null, 'arraybuffer');
 ```
