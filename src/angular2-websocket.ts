@@ -42,12 +42,13 @@ export class $WebSocket {
     private dataStream: Subject<any>;
     private internalConnectionState: number;
 
-    constructor(private url: string, private protocols?: Array<string>, private config?: WebSocketConfig) {
+    constructor(private url: string, private protocols?: Array<string>, private config?: WebSocketConfig, private binaryType?: BinaryType) {
         let match = new RegExp('wss?:\/\/').test(url);
         if (!match) {
             throw new Error('Invalid url provided');
         }
         this.config = config || {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false};
+        this.binaryType = binaryType || "blob";
         this.dataStream = new Subject();
         this.connect(true);
     }
@@ -57,6 +58,7 @@ export class $WebSocket {
         let self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
             self.socket = this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
+            self.socket.binaryType = self.binaryType.toString();
 
             self.socket.onopen = (ev: Event) => {
                 // console.log('onOpen: ', ev);
@@ -319,4 +321,6 @@ export interface WebSocketConfig {
 export enum WebSocketSendMode {
     Direct, Promise, Observable
 }
+
+export type BinaryType = "blob" | "arraybuffer";
 

@@ -25,6 +25,9 @@ npm run compile
 
 ```
 
+
+The default value for binary type is 'arrayBuffer'.
+
 ## example
 ```ts
 import {$WebSocket, WebSocketSendMode} from 'angular2-websocket/angular2-websocket';
@@ -105,4 +108,14 @@ ws.close(false);    // close
 ws.close(true);    // close immediately
 
 
+```
+
+## Binary type
+To set the binary type for the websocket one can provide it as string in the constructor. Allowed types are:
+
+* 'blob' (default)
+* 'arraybuffer'
+
+```ts
+var ws = new $WebSocket("ws://127.0.0.1:7000", null, null, 'arraybuffer');
 ```
