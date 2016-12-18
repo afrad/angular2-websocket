@@ -66,7 +66,7 @@ export class $WebSocket {
             };
             self.socket.onmessage = (ev: MessageEvent) => {
                 // console.log('onNext: ', ev.data);
-                // self.onMessageHandler(ev);
+                self.onMessageHandler(ev);
                 this.dataStream.next(ev);
             };
             this.socket.onclose = (ev: CloseEvent) => {
