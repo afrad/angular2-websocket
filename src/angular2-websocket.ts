@@ -2,7 +2,6 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 
-
 @Injectable()
 export class $WebSocket {
 
@@ -42,57 +41,134 @@ export class $WebSocket {
     private socket: WebSocket;
     private dataStream: Subject<any>;
     private internalConnectionState: number;
-    constructor(private url: string, private protocols?: Array<string>, private config?: WebSocketConfig) {
+
+    constructor(private url: string, private protocols?: Array<string>, private config?: WebSocketConfig, private binaryType?: BinaryType) {
         let match = new RegExp('wss?:\/\/').test(url);
         if (!match) {
             throw new Error('Invalid url provided');
         }
-        this.config = config || { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false };
+        this.config = config || {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false};
+        this.binaryType = binaryType || "blob";
         this.dataStream = new Subject();
+        this.connect(true);
     }
 
     connect(force = false) {
+        // console.log("WebSocket connecting...");
         let self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
             self.socket = this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
+            self.socket.binaryType = self.binaryType.toString();
 
             self.socket.onopen = (ev: Event) => {
-                //    console.log('onOpen: %s', ev);
+                // console.log('onOpen: ', ev);
                 this.onOpenHandler(ev);
             };
             self.socket.onmessage = (ev: MessageEvent) => {
-                //   console.log('onNext: %s', ev.data);
-                self.onMessageHandler(ev);
+                // console.log('onNext: ', ev.data);
+                // self.onMessageHandler(ev);
                 this.dataStream.next(ev);
             };
             this.socket.onclose = (ev: CloseEvent) => {
-                //     console.log('onClose, completed');
+                // console.log('onClose ', ev);
                 self.onCloseHandler(ev);
             };
 
             this.socket.onerror = (ev: ErrorEvent) => {
-                //    console.log('onError', ev);
+                // console.log('onError ', ev);
                 self.onErrorHandler(ev);
                 this.dataStream.error(ev);
             };
 
         }
     }
-    send(data): Observable<any> {
+
+    /**
+     * Run in Block Mode
+     * Return true when can send and false in socket closed
+     * @param data
+     * @returns {boolean}
+     */
+    send4Direct(data): boolean {
         let self = this;
         if (this.getReadyState() !== this.readyStateConstants.OPEN
-                && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
+            && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
             this.connect();
         }
+        self.sendQueue.push({message: data});
+        if (self.socket.readyState !== self.readyStateConstants.RECONNECT_ABORTED) {
+            return false;
+        } else {
+            self.fireQueue();
+            return true;
+        }
+    }
+
+    /**
+     * Return Promise
+     * When can Send will resolve Promise
+     * When Socket closed will reject Promise
+     * @param data
+     * @returns {Promise<any>}
+     */
+    send4Promise(data): Promise<any> {
+        return new Promise(
+            (resolve, reject) => {
+                if (this.send4Direct(data)) {
+                    return resolve();
+                } else {
+                    return reject(Error('Socket connection has been closed'));
+                }
+            }
+        )
+    }
+
+    /**
+     * Return cold Observable
+     * When can Send will complete observer
+     * When Socket closed will error observer
+     * @param data
+     * @returns {Observable<any>}
+     */
+    send4Observable(data): Observable<any> {
         return Observable.create((observer) => {
-            if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
-                observer.next('Socket connection has been closed');
+            if (this.send4Direct(data)) {
+                return observer.complete();
             } else {
-                self.sendQueue.push({ message: data });
-                self.fireQueue();
+                return observer.error('Socket connection has been closed');
             }
         });
-    };
+    }
+
+    private send4Mode: WebSocketSendMode = WebSocketSendMode.Observable;
+
+    /**
+     * Set send(data) function return mode
+     * @param mode
+     */
+    setSend4Mode(mode: WebSocketSendMode): void {
+        this.send4Mode = mode;
+    }
+
+    /**
+     * Use {mode} mode to send {data} data
+     * If no specify, Default SendMode is Observable mode
+     * @param data
+     * @param mode
+     * @returns {any}
+     */
+    send(data: any, mode?: WebSocketSendMode): any {
+        switch (typeof mode !== "undefined" ? mode : this.send4Mode) {
+            case WebSocketSendMode.Direct:
+                return this.send4Direct(data);
+            case WebSocketSendMode.Promise:
+                return this.send4Promise(data);
+            case WebSocketSendMode.Observable:
+                return this.send4Observable(data);
+            default:
+                throw Error("WebSocketSendMode Error.");
+        }
+    }
 
     getDataStream(): Subject<any> {
         return this.dataStream;
@@ -102,16 +178,20 @@ export class $WebSocket {
         this.reconnectAttempts = 0;
         this.notifyOpenCallbacks(event);
         this.fireQueue();
-    };
+    }
+
     notifyOpenCallbacks(event) {
         for (let i = 0; i < this.onOpenCallbacks.length; i++) {
             this.onOpenCallbacks[i].call(this, event);
         }
     }
+
     fireQueue() {
+        // console.log("fireQueue()");
         while (this.sendQueue.length && this.socket.readyState === this.readyStateConstants.OPEN) {
             let data = this.sendQueue.shift();
 
+            // console.log("fireQueue: ", data);
             this.socket.send(
                 $WebSocket.Helpers.isString(data.message) ? data.message : JSON.stringify(data.message)
             );
@@ -146,8 +226,7 @@ export class $WebSocket {
         return this;
     };
 
-
-    onMessage(callback, options) {
+    onMessage(callback, options?) {
         if (!$WebSocket.Helpers.isFunction(callback)) {
             throw new Error('Callback must be a function');
         }
@@ -168,12 +247,14 @@ export class $WebSocket {
             currentCallback.fn.apply(self, [message]);
         }
     };
+
     onCloseHandler(event: CloseEvent) {
         this.notifyCloseCallbacks(event);
         if ((this.config.reconnectIfNotNormalClose && event.code !== this.normalCloseCode)
-                || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
+            || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
             this.reconnect();
         } else {
+            this.sendQueue = [];
             this.dataStream.complete();
         }
     };
@@ -181,10 +262,6 @@ export class $WebSocket {
     onErrorHandler(event) {
         this.notifyErrorCallbacks(event);
     };
-
-
-
-
 
     reconnect() {
         this.close(true);
@@ -195,12 +272,13 @@ export class $WebSocket {
         return this;
     }
 
-    close(force: boolean) {
+    close(force: boolean = false) {
         if (force || !this.socket.bufferedAmount) {
             this.socket.close();
         }
         return this;
     };
+
     // Exponential Backoff Formula by Prof. Douglas Thain
     // http://dthain.blogspot.co.uk/2009/02/exponential-backoff-in-distributed.html
     getBackoffDelay(attempt) {
@@ -239,4 +317,10 @@ export interface WebSocketConfig {
     maxTimeout: number;
     reconnectIfNotNormalClose: boolean;
 }
+
+export enum WebSocketSendMode {
+    Direct, Promise, Observable
+}
+
+export type BinaryType = "blob" | "arraybuffer";
 
