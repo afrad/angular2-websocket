@@ -96,7 +96,7 @@ export class $WebSocket {
             this.connect();
         }
         self.sendQueue.push({message: data});
-        if (self.socket.readyState !== self.readyStateConstants.RECONNECT_ABORTED) {
+        if (self.socket.readyState === self.readyStateConstants.RECONNECT_ABORTED) {
             return false;
         } else {
             self.fireQueue();
