@@ -274,7 +274,7 @@ export class $WebSocket {
 
     close(force: boolean = false) {
         if (force || !this.socket.bufferedAmount) {
-            this.socket.close();
+            this.socket.close(this.normalCloseCode);
         }
         return this;
     };
