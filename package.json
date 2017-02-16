@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc",
     "typings": "typings install",
-    "lint": "tslint \"src/**/*.ts\""
+    "lint": "tslint \"src/**/*.ts\"",
+    "compile-no-dts": "tsc --declaration false"
   },
   "repository": {
     "type": "git",
