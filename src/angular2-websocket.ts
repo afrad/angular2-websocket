@@ -89,13 +89,13 @@ export class $WebSocket {
      * @param data
      * @returns {boolean}
      */
-    send4Direct(data): boolean {
+    send4Direct(data, binary?: boolean): boolean {
         let self = this;
         if (this.getReadyState() !== this.readyStateConstants.OPEN
             && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
             this.connect();
         }
-        self.sendQueue.push({message: data});
+        self.sendQueue.push({message: data, binary: binary});
         if (self.socket.readyState === self.readyStateConstants.OPEN) {
             self.fireQueue();
             return true;
@@ -111,10 +111,10 @@ export class $WebSocket {
      * @param data
      * @returns {Promise<any>}
      */
-    send4Promise(data): Promise<any> {
+    send4Promise(data, binary?: boolean): Promise<any> {
         return new Promise(
             (resolve, reject) => {
-                if (this.send4Direct(data)) {
+                if (this.send4Direct(data, binary)) {
                     return resolve();
                 } else {
                     return reject(Error('Socket connection has been closed'));
@@ -130,9 +130,9 @@ export class $WebSocket {
      * @param data
      * @returns {Observable<any>}
      */
-    send4Observable(data): Observable<any> {
+    send4Observable(data, binary?: boolean): Observable<any> {
         return Observable.create((observer) => {
-            if (this.send4Direct(data)) {
+            if (this.send4Direct(data, binary)) {
                 return observer.complete();
             } else {
                 return observer.error('Socket connection has been closed');
@@ -155,16 +155,17 @@ export class $WebSocket {
      * If no specify, Default SendMode is Observable mode
      * @param data
      * @param mode
+     * @param binary
      * @returns {any}
      */
-    send(data: any, mode?: WebSocketSendMode): any {
+    send(data: any, mode?: WebSocketSendMode, binary?: boolean): any {
         switch (typeof mode !== "undefined" ? mode : this.send4Mode) {
             case WebSocketSendMode.Direct:
-                return this.send4Direct(data);
+                return this.send4Direct(data, binary);
             case WebSocketSendMode.Promise:
-                return this.send4Promise(data);
+                return this.send4Promise(data, binary);
             case WebSocketSendMode.Observable:
-                return this.send4Observable(data);
+                return this.send4Observable(data, binary);
             default:
                 throw Error("WebSocketSendMode Error.");
         }
@@ -192,9 +193,13 @@ export class $WebSocket {
             let data = this.sendQueue.shift();
 
             // console.log("fireQueue: ", data);
-            this.socket.send(
-                $WebSocket.Helpers.isString(data.message) ? data.message : JSON.stringify(data.message)
-            );
+            if (data.binary) {
+                this.socket.send(data.message);
+            } else {
+                this.socket.send(
+                    $WebSocket.Helpers.isString(data.message) ? data.message : JSON.stringify(data.message)
+                );
+            }
             // data.deferred.resolve();
         }
     }
