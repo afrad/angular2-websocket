@@ -195,7 +195,7 @@ export class $WebSocket {
             // console.log("fireQueue: ", data);
             if (data.binary) {
                 this.socket.send(data.message);
-            } else {}
+            } else {
                 this.socket.send(
                     $WebSocket.Helpers.isString(data.message) ? data.message : JSON.stringify(data.message)
                 );
