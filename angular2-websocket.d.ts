@@ -4,6 +4,7 @@ export declare class $WebSocket {
     private url;
     private protocols;
     private config;
+    private binaryType;
     private static Helpers;
     private reconnectAttempts;
     private sendQueue;
@@ -17,7 +18,7 @@ export declare class $WebSocket {
     private socket;
     private dataStream;
     private internalConnectionState;
-    constructor(url: string, protocols?: Array<string>, config?: WebSocketConfig);
+    constructor(url: string, protocols?: Array<string>, config?: WebSocketConfig, binaryType?: BinaryType);
     connect(force?: boolean): void;
     /**
      * Run in Block Mode
@@ -25,7 +26,7 @@ export declare class $WebSocket {
      * @param data
      * @returns {boolean}
      */
-    send4Direct(data: any): boolean;
+    send4Direct(data: any, binary?: boolean): boolean;
     /**
      * Return Promise
      * When can Send will resolve Promise
@@ -33,7 +34,7 @@ export declare class $WebSocket {
      * @param data
      * @returns {Promise<any>}
      */
-    send4Promise(data: any): Promise<any>;
+    send4Promise(data: any, binary?: boolean): Promise<any>;
     /**
      * Return cold Observable
      * When can Send will complete observer
@@ -41,7 +42,7 @@ export declare class $WebSocket {
      * @param data
      * @returns {Observable<any>}
      */
-    send4Observable(data: any): Observable<any>;
+    send4Observable(data: any, binary?: boolean): Observable<any>;
     private send4Mode;
     /**
      * Set send(data) function return mode
@@ -53,9 +54,10 @@ export declare class $WebSocket {
      * If no specify, Default SendMode is Observable mode
      * @param data
      * @param mode
+     * @param binary
      * @returns {any}
      */
-    send(data: any, mode?: WebSocketSendMode): any;
+    send(data: any, mode?: WebSocketSendMode, binary?: boolean): any;
     getDataStream(): Subject<any>;
     onOpenHandler(event: Event): void;
     notifyOpenCallbacks(event: any): void;
@@ -89,3 +91,4 @@ export declare enum WebSocketSendMode {
     Promise = 1,
     Observable = 2,
 }
+export declare type BinaryType = "blob" | "arraybuffer";
