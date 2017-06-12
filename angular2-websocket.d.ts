@@ -59,6 +59,7 @@ export declare class $WebSocket {
      */
     send(data: any, mode?: WebSocketSendMode, binary?: boolean): any;
     getDataStream(): Subject<any>;
+    getErrorStream(): Subject<any>;
     onOpenHandler(event: Event): void;
     notifyOpenCallbacks(event: any): void;
     fireQueue(): void;
