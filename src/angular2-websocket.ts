@@ -40,6 +40,7 @@ export class $WebSocket {
     private reconnectableStatusCodes = [4000];
     private socket: WebSocket;
     private dataStream: Subject<any>;
+    private errorMessages: Subject<any>;
     private internalConnectionState: number;
 
     constructor(private url: string, private protocols?: Array<string>, private config?: WebSocketConfig, private binaryType?: BinaryType) {
@@ -50,6 +51,7 @@ export class $WebSocket {
         this.config = config || {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false};
         this.binaryType = binaryType || "blob";
         this.dataStream = new Subject();
+        this.errorMessages = new Subject();
         this.connect(true);
     }
 
@@ -77,10 +79,14 @@ export class $WebSocket {
             this.socket.onerror = (ev: ErrorEvent) => {
                 // console.log('onError ', ev);
                 self.onErrorHandler(ev);
-                this.dataStream.error(ev);
+                this.errorMessages.next(ev);
             };
 
         }
+    }
+
+    getErrorStream(): Subject<any> {
+        return this.errorMessages;
     }
 
     /**
@@ -92,7 +98,7 @@ export class $WebSocket {
     send4Direct(data, binary?: boolean): boolean {
         let self = this;
         if (this.getReadyState() !== this.readyStateConstants.OPEN
-            && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
+               && this.getReadyState() !== this.readyStateConstants.CONNECTING) {
             this.connect();
         }
         self.sendQueue.push({message: data, binary: binary});
@@ -100,7 +106,7 @@ export class $WebSocket {
             self.fireQueue();
             return true;
         } else {
-          return false;
+            return false;
         }
     }
 
@@ -113,13 +119,13 @@ export class $WebSocket {
      */
     send4Promise(data, binary?: boolean): Promise<any> {
         return new Promise(
-            (resolve, reject) => {
-                if (this.send4Direct(data, binary)) {
-                    return resolve();
-                } else {
-                    return reject(Error('Socket connection has been closed'));
-                }
-            }
+               (resolve, reject) => {
+                   if (this.send4Direct(data, binary)) {
+                       return resolve();
+                   } else {
+                       return reject(Error('Socket connection has been closed'));
+                   }
+               }
         )
     }
 
@@ -197,7 +203,7 @@ export class $WebSocket {
                 this.socket.send(data.message);
             } else {
                 this.socket.send(
-                    $WebSocket.Helpers.isString(data.message) ? data.message : JSON.stringify(data.message)
+                       $WebSocket.Helpers.isString(data.message) ? data.message : JSON.stringify(data.message)
                 );
             }
             // data.deferred.resolve();
@@ -256,7 +262,7 @@ export class $WebSocket {
     onCloseHandler(event: CloseEvent) {
         this.notifyCloseCallbacks(event);
         if ((this.config.reconnectIfNotNormalClose && event.code !== this.normalCloseCode)
-            || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
+               || this.reconnectableStatusCodes.indexOf(event.code) > -1) {
             this.reconnect();
         } else {
             this.sendQueue = [];
