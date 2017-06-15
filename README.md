@@ -77,13 +77,13 @@ ws.send("some thing").subscribe(
         }
     );
   
-ws.send("by default, this will never be send, because Observer is cold.");
-ws.send("by default, this will be send, because Observer is hot.").publish().connect();
+ws.send("by default, this will never be sent, because Observer is cold.");
+ws.send("by default, this will be sent, because Observer is hot.").publish().connect();
   
 ws.setSendMode(WebSocketSendMode.Direct);
-ws.send("this will be send Direct, because send mode is set to Direct.");
+ws.send("this will be sent Direct, because send mode is set to Direct.");
   
-ws.send("this will be send and return Promise.", WebSocketSendMode.Promise).then(
+ws.send("this will be sent and return Promise.", WebSocketSendMode.Promise).then(
         (T) => {
             console.log("is send");
         },
@@ -92,7 +92,7 @@ ws.send("this will be send and return Promise.", WebSocketSendMode.Promise).then
         }
     );
   
-ws.send("this will be send and return Observer.").subscribe(
+ws.send("this will be sent and return Observer.").subscribe(
         (msg)=> {
             console.log("next", msg.data);
         },
