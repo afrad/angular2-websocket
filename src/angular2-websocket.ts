@@ -275,15 +275,23 @@ export class $WebSocket {
     };
 
     reconnect() {
-        this.close(true);
+        this.close(true, true);
         let backoffDelay = this.getBackoffDelay(++this.reconnectAttempts);
         // let backoffDelaySeconds = backoffDelay / 1000;
         // console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
-        setTimeout(() => this.connect(), backoffDelay);
+        setTimeout(() => {
+            if (this.config.reconnectIfNotNormalClose) {
+                this.connect()
+            }
+        }, backoffDelay);
         return this;
     }
 
-    close(force: boolean = false) {
+    close(force: boolean = false, keepReconnectIfNotNormalClose?: boolean) {
+        if (!keepReconnectIfNotNormalClose) {
+            this.config.reconnectIfNotNormalClose = false;
+        }
+
         if (force || !this.socket.bufferedAmount) {
             this.socket.close(this.normalCloseCode);
         }
@@ -334,4 +342,3 @@ export enum WebSocketSendMode {
 }
 
 export type BinaryType = "blob" | "arraybuffer";
-
