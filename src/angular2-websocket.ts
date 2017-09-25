@@ -48,7 +48,7 @@ export class $WebSocket {
         if (!match) {
             throw new Error('Invalid url provided');
         }
-        this.config = config || {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false};
+        this.config = Object.assign({ initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false }, config);
         this.binaryType = binaryType || "blob";
         this.dataStream = new Subject();
         this.errorMessages = new Subject();
@@ -324,9 +324,9 @@ export class $WebSocket {
 }
 
 export interface WebSocketConfig {
-    initialTimeout: number;
-    maxTimeout: number;
-    reconnectIfNotNormalClose: boolean;
+    initialTimeout?: number;
+    maxTimeout?: number;
+    reconnectIfNotNormalClose?: boolean;
 }
 
 export enum WebSocketSendMode {
