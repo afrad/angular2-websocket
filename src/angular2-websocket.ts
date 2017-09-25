@@ -131,7 +131,7 @@ export class $WebSocket {
 
     /**
      * Return cold Observable
-     * When can Send will complete observer
+     * When can Send will next observer
      * When Socket closed will error observer
      * @param data
      * @returns {Observable<any>}
@@ -139,7 +139,7 @@ export class $WebSocket {
     send4Observable(data, binary?: boolean): Observable<any> {
         return Observable.create((observer) => {
             if (this.send4Direct(data, binary)) {
-                return observer.complete();
+                return observer.next();
             } else {
                 return observer.error('Socket connection has been closed');
             }

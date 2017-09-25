@@ -17,9 +17,11 @@ export declare class $WebSocket {
     private reconnectableStatusCodes;
     private socket;
     private dataStream;
+    private errorMessages;
     private internalConnectionState;
     constructor(url: string, protocols?: Array<string>, config?: WebSocketConfig, binaryType?: BinaryType);
     connect(force?: boolean): void;
+    getErrorStream(): Subject<any>;
     /**
      * Run in Block Mode
      * Return true when can send and false in socket closed
@@ -37,7 +39,7 @@ export declare class $WebSocket {
     send4Promise(data: any, binary?: boolean): Promise<any>;
     /**
      * Return cold Observable
-     * When can Send will complete observer
+     * When can Send will next observer
      * When Socket closed will error observer
      * @param data
      * @returns {Observable<any>}
@@ -59,7 +61,6 @@ export declare class $WebSocket {
      */
     send(data: any, mode?: WebSocketSendMode, binary?: boolean): any;
     getDataStream(): Subject<any>;
-    getErrorStream(): Subject<any>;
     onOpenHandler(event: Event): void;
     notifyOpenCallbacks(event: any): void;
     fireQueue(): void;
