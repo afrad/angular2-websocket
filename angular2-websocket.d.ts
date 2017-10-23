@@ -17,9 +17,11 @@ export declare class $WebSocket {
     private reconnectableStatusCodes;
     private socket;
     private dataStream;
+    private errorMessages;
     private internalConnectionState;
     constructor(url: string, protocols?: Array<string>, config?: WebSocketConfig, binaryType?: BinaryType);
     connect(force?: boolean): void;
+    getErrorStream(): Subject<any>;
     /**
      * Run in Block Mode
      * Return true when can send and false in socket closed
@@ -59,7 +61,6 @@ export declare class $WebSocket {
      */
     send(data: any, mode?: WebSocketSendMode, binary?: boolean): any;
     getDataStream(): Subject<any>;
-    getErrorStream(): Subject<any>;
     onOpenHandler(event: Event): void;
     notifyOpenCallbacks(event: any): void;
     fireQueue(): void;
@@ -73,7 +74,7 @@ export declare class $WebSocket {
     onCloseHandler(event: CloseEvent): void;
     onErrorHandler(event: any): void;
     reconnect(): this;
-    close(force?: boolean): this;
+    close(force?: boolean, keepReconnectIfNotNormalClose?: boolean): this;
     getBackoffDelay(attempt: any): number;
     setInternalState(state: any): void;
     /**
@@ -83,9 +84,9 @@ export declare class $WebSocket {
     getReadyState(): number;
 }
 export interface WebSocketConfig {
-    initialTimeout: number;
-    maxTimeout: number;
-    reconnectIfNotNormalClose: boolean;
+    initialTimeout?: number;
+    maxTimeout?: number;
+    reconnectIfNotNormalClose?: boolean;
 }
 export declare enum WebSocketSendMode {
     Direct = 0,
