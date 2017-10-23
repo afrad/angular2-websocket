@@ -2,7 +2,6 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
 
-@Injectable()
 export class $WebSocket {
 
     private static Helpers = class {
@@ -43,7 +42,11 @@ export class $WebSocket {
     private errorMessages: Subject<any>;
     private internalConnectionState: number;
 
-    constructor(private url: string, private protocols?: Array<string>, private config?: WebSocketConfig, private binaryType?: BinaryType) {
+    constructor(private url: string, 
+        private protocols?: Array<string>, 
+        private config?: WebSocketConfig, 
+        private binaryType?: BinaryType) 
+    {
         let match = new RegExp('wss?:\/\/').test(url);
         if (!match) {
             throw new Error('Invalid url provided');
