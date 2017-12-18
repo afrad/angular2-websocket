@@ -29,6 +29,7 @@ export class $WebSocket {
     private onErrorCallbacks = [];
     private onCloseCallbacks = [];
     private readyStateConstants = {
+        'UNINITIALIZED': -1,
         'CONNECTING': 0,
         'OPEN': 1,
         'CLOSING': 2,
@@ -322,13 +323,9 @@ export class $WebSocket {
 
     }
 
-    /**
-     * Could be -1 if not initzialized yet
-     * @returns {number}
-     */
     getReadyState() {
         if (this.socket == null) {
-            return -1;
+            return this.readyStateConstants.UNINITIALIZED;
         }
         return this.internalConnectionState || this.socket.readyState;
     }
