@@ -1,6 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Observable';
-import {Subject} from 'rxjs/Subject';
+import {Observable, Subject} from 'rxjs';
 
 export class $WebSocket {
 
@@ -43,17 +42,17 @@ export class $WebSocket {
     private errorMessages: Subject<any>;
     private internalConnectionState: number;
 
-    constructor(private url: string, 
-        private protocols?: Array<string>, 
-        private config?: WebSocketConfig, 
-        private binaryType?: BinaryType) 
+    constructor(private url: string,
+        private protocols?: Array<string>,
+        private config?: WebSocketConfig,
+        private binaryType?: BinaryType)
     {
         let match = new RegExp('wss?:\/\/').test(url);
         if (!match) {
             throw new Error('Invalid url provided');
         }
         this.config = Object.assign({ initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: false }, config);
-        this.binaryType = binaryType || "blob";
+        this.binaryType = binaryType || 'blob';
         this.dataStream = new Subject();
         this.errorMessages = new Subject();
         this.connect(true);
@@ -64,7 +63,7 @@ export class $WebSocket {
         let self = this;
         if (force || !this.socket || this.socket.readyState !== this.readyStateConstants.OPEN) {
             self.socket = this.protocols ? new WebSocket(this.url, this.protocols) : new WebSocket(this.url);
-            self.socket.binaryType = self.binaryType.toString();
+            self.socket.binaryType = self.binaryType;
 
             self.socket.onopen = (ev: Event) => {
                 // console.log('onOpen: ', ev);
@@ -169,7 +168,7 @@ export class $WebSocket {
      * @returns {any}
      */
     send(data: any, mode?: WebSocketSendMode, binary?: boolean): any {
-        switch (typeof mode !== "undefined" ? mode : this.send4Mode) {
+        switch (typeof mode !== 'undefined' ? mode : this.send4Mode) {
             case WebSocketSendMode.Direct:
                 return this.send4Direct(data, binary);
             case WebSocketSendMode.Promise:
@@ -177,7 +176,7 @@ export class $WebSocket {
             case WebSocketSendMode.Observable:
                 return this.send4Observable(data, binary);
             default:
-                throw Error("WebSocketSendMode Error.");
+                throw Error('WebSocketSendMode Error.');
         }
     }
 
