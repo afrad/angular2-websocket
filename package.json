@@ -18,25 +18,25 @@
     "bluebird": "^3.4.6"
   },
   "peerDependencies": {
-    "core-js": "^2.4.1",
+    "core-js": "^2.5.0",
     "reflect-metadata": "^0.1.8",
-    "typescript": "^2.4.0",
+    "typescript": "^3.2.0",
     "zone.js": "^0.8.12"
   },
   "devDependencies": {
-    "@angular/common": "^6.0.2",
-    "@angular/compiler": "^6.0.2",
-    "@angular/core": "6.0.2",
+    "@angular/common": "^7.0.0",
+    "@angular/compiler": "^7.0.0",
+    "@angular/core": "^7.0.0",
     "@types/bluebird": "^3.0.35",
     "codelyzer": "^4.3.0",
-    "core-js": "^2.4.1",
+    "core-js": "^2.5.0",
     "grunt": "~0.4.1",
     "grunt-contrib-uglify": "~0.2.4",
     "grunt-typescript": "~0.2.4",
     "reflect-metadata": "^0.1.8",
     "rxjs": "^6.1.0",
     "tslint": "~5.7.0",
-    "typescript": "^2.4.0",
+    "typescript": "^3.2.0",
     "typings": "^2.0.0",
     "zone.js": "^0.8.12"
   }
